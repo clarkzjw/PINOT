@@ -6,13 +6,19 @@ from pprint import pprint
 from netunicorn.client.remote import RemoteClient, RemoteClientException
 from netunicorn.base.experiment import Experiment, ExperimentStatus
 from netunicorn.base.pipeline import Pipeline
+from netunicorn.base.environment_definitions import DockerImage
+from netunicorn.base.deployment import Deployment
 from netunicorn.library.tasks.measurements.ping import Ping
 from netunicorn.library.tasks.basic import ShellCommand
 from returns.pipeline import is_successful
 
+# env = DockerImage(image="curlimages/curl")
+# pipeline = Pipeline(environment_definition=env)
+# pipeline = pipeline.then([
+#     ShellCommand("curl ipconfig.io")
+# ])
 
 pipeline = Pipeline()
-
 pipeline = pipeline.then([
     ShellCommand("ping -D 1.1.1.1 -c 10"),
 ]).then(
@@ -48,7 +54,7 @@ for deployment in experiment:
     print("deployment environment definition:", deployment.environment_definition)
     print("\n")
 
-experiment_name = 'experiment_ping'
+experiment_name = 'experiment_test_shell_command'
 try:
     client.delete_experiment(experiment_name)
 except RemoteClientException as e:

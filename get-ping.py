@@ -18,10 +18,11 @@ password = os.environ.get('NETUNICORN_PASSWORD') or 'test'
 client = RemoteClient(endpoint=endpoint, login=login, password=password)
 client.healthcheck()
 
-experiment_name = 'experiment_ping'
+experiment_name = 'experiment_test_shell_command'
 
 while True:
     info = client.get_experiment_status(experiment_name)
+    print(info.status)
     if info.status != ExperimentStatus.RUNNING:
         break
     time.sleep(10)
