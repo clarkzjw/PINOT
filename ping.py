@@ -11,29 +11,35 @@ from netunicorn.base.deployment import Deployment
 from netunicorn.library.tasks.measurements.ping import Ping
 from netunicorn.library.tasks.basic import ShellCommand
 from returns.pipeline import is_successful
+from netunicorn.base import ShellExecution
 
 # env = DockerImage(image="curlimages/curl")
 # pipeline = Pipeline(environment_definition=env)
 # pipeline = pipeline.then([
 #     ShellCommand("curl ipconfig.io")
 # ])
+test=False
+experiment_name = 'experiment_test_shell_command-4'
 
 pipeline = Pipeline()
-pipeline = pipeline.then([
-    ShellCommand("ping -D 1.1.1.1 -c 10"),
-]).then(
-    ShellCommand("sudo apt-get install -y traceroute && traceroute 1.1.1.1")
-).then(
-    ShellCommand("sudo apt-get install -y curl && curl ipconfig.io")
-)
+if not test:
+    pipeline.environment_definition = ShellExecution()
 
-if '.env' in os.listdir():
-    from dotenv import load_dotenv
+pipeline = pipeline.then([
+    ShellCommand("ping -D 1.1.1.1 -c 5"),
+])
+
+from dotenv import load_dotenv
+
+if test:
+    load_dotenv(".env-test")
+else:
     load_dotenv(".env")
 
 endpoint = os.environ.get('NETUNICORN_ENDPOINT') or 'http://localhost:26611'
 login = os.environ.get('NETUNICORN_LOGIN') or 'test'
 password = os.environ.get('NETUNICORN_PASSWORD') or 'test'
+
 client = RemoteClient(endpoint=endpoint, login=login, password=password)
 client.healthcheck()
 
@@ -54,7 +60,6 @@ for deployment in experiment:
     print("deployment environment definition:", deployment.environment_definition)
     print("\n")
 
-experiment_name = 'experiment_test_shell_command'
 try:
     client.delete_experiment(experiment_name)
 except RemoteClientException as e:
@@ -99,7 +104,3 @@ while True:
 for report in info.execution_result:
     print(f"Node name: {report.node.name}")
     print(f"Error: {report.error}")
-
-    result, log = report.result
-    if not is_successful(result):
-        print("failed: ", result)
